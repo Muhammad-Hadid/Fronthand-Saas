@@ -1,0 +1,331 @@
+"use client";
+import DashboardSidebar from "../../Components/DashboardSidebar";
+import DashboardNavbar from "@/app/Components/DashboardNavbar";
+import { useRouter } from "next/navigation";
+
+import React, { useEffect, useMemo, useState } from "react";
+
+type Product = {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  price: string;
+  quantity: number;
+  store_id: number;
+  status: "available" | "unavailable";
+  createdAt: string;
+  updatedAt: string;
+};
+
+// --- helpers -------------------------------------------------------------
+
+/** Safely read tenant (subdomain) from localStorage or from current host */
+function getTenantFromClient(): string | null {
+  if (typeof window === "undefined") return null;
+
+  // 1) Preferred key your app saves: "subdomain"
+  const lsSub = localStorage.getItem("subdomain");
+  if (lsSub && lsSub.trim()) return lsSub.trim();
+
+  // 2) Fallbacks if you ever saved under a different key
+  const lsTenant = localStorage.getItem("tenant");
+  if (lsTenant && lsTenant.trim()) return lsTenant.trim();
+
+  const lsTenantId = localStorage.getItem("tenant_id");
+  if (lsTenantId && lsTenantId.trim()) return lsTenantId.trim();
+
+  return null;
+}
+
+async function fetchProducts(tenant: string): Promise<Product[]> {
+  // Get the auth token from cookies
+  const token = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('token='))
+    ?.split('=')[1];
+
+  const res = await fetch("http://localhost:4000/product/getAllProducts", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "x-tenant": tenant, // <-- important
+      ...(token && { "Authorization": `Bearer ${token}` }), // Add auth header if token exists
+    },
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Request failed with status ${res.status}`);
+  }
+
+  const data = (await res.json()) as Product[];
+  return data;
+}
+
+// --- page component ------------------------------------------------------
+
+export default function ProductsPage() {
+  const router = useRouter();
+  const [tenant, setTenant] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // read tenant once on mount
+  useEffect(() => {
+    const t = getTenantFromClient();
+    setTenant(t);
+  }, []);
+
+  // fetch when tenant available
+  useEffect(() => {
+    if (!tenant) {
+      setLoading(false);
+      setError("Tenant (subdomain) not found in localStorage or URL.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    fetchProducts(tenant)
+      .then((data) => setProducts(data))
+      .catch((e: any) => setError(e?.message || "Failed to load products"))
+      .finally(() => setLoading(false));
+  }, [tenant]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Dashboard Navbar */}
+      <DashboardNavbar />
+
+      <div className="flex">
+        {/* Dashboard Sidebar */}
+        <DashboardSidebar />
+
+        {/* Main Content Area */}
+        <div className="flex-1">
+          <div className="p-6">
+            {/* Header */}
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Products Management</h1>
+                <p className="text-gray-600">Manage and organize your product inventory</p>
+              </div>
+
+              {/* Top right section */}
+              <div className="flex items-center gap-4">
+                {/* Dynamic tenant display */}
+                <div className="flex items-center gap-2 rounded-lg bg-white border border-blue-200 px-4 py-2 shadow-sm">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-sm font-medium text-blue-800">
+                    {tenant || "No Tenant"}
+                  </span>
+                </div>
+
+                {/* Add Product button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    router.push("/Dashboard/Addnewproduct");
+                  }}
+                  className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 text-sm font-semibold text-white hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Product
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            {loading ? (
+              <div className="flex items-center justify-center py-32">
+                <div className="text-center">
+                  <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+                  <p className="text-gray-600 text-lg">Loading products...</p>
+                </div>
+              </div>
+            ) : error ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-red-800 font-medium">{error}</span>
+                </div>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="rounded-xl border-2 border-dashed border-gray-300 bg-white p-16 text-center shadow-sm">
+                <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8 8 8 8m8-16l8 8-8 8" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                <p className="text-gray-600">No products found for tenant "{tenant}". Start by adding your first product.</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                {/* Table header */}
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                  <div className="grid grid-cols-11 gap-4 px-6 py-4 text-sm font-semibold text-gray-700">
+                    <div className="col-span-1">ID</div>
+                    <div className="col-span-3">Product Details</div>
+                    <div className="col-span-1">Category</div>
+                    <div className="col-span-1">Price</div>
+                    <div className="col-span-1">Quantity</div>
+                    <div className="col-span-1">Status</div>
+                    <div className="col-span-3">Actions</div>
+                  </div>
+                </div>
+
+                {/* Rows */}
+                <div className="divide-y divide-gray-100">
+                  {products.map((p, index) => (
+                    <div
+                      key={p.id}
+                      className={`grid grid-cols-11 gap-4 px-6 py-5 text-sm items-center hover:bg-yellow-50 transition-colors duration-150 ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                      }`}
+                    >
+                      {/* ID */}
+                      <div className="col-span-1">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          #{p.id}
+                        </span>
+                      </div>
+
+                      {/* Product Details */}
+                      <div className="col-span-3 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-yellow-100 to-yellow-200 flex items-center justify-center shadow-sm">
+                          <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                          </svg>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-gray-900 truncate text-base">
+                            {p.name}
+                          </div>
+                          <div className="text-sm text-gray-500 truncate mt-1">
+                            {p.description}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Category */}
+                      <div className="col-span-1">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          {p.category}
+                        </span>
+                      </div>
+
+                      {/* Price */}
+                      <div className="col-span-1">
+                        <div className="font-bold text-gray-900 text-base">${p.price}</div>
+                      </div>
+
+                      {/* Quantity */}
+                      <div className="col-span-1">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${p.quantity > 10 ? 'bg-green-400' : p.quantity > 0 ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
+                          <span className="font-medium text-gray-800">{p.quantity}</span>
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div className="col-span-1">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
+                              p.status === "available"
+                                ? "bg-green-500"
+                                : "bg-gray-300"
+                            }`}
+                          >
+                            <div
+                              className={`inline-block h-4 w-4 rounded-full bg-white shadow-lg transform transition-transform duration-300 ${
+                                p.status === "available" ? "translate-x-6" : "translate-x-1"
+                              }`}
+                            />
+                          </div>
+                          <span
+                            className={`text-sm font-medium ${
+                              p.status === "available"
+                                ? "text-green-600"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {p.status === "available" ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="col-span-3 flex items-center gap-2">
+                        {/* View button */}
+                        <button className="p-2 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                        </button>
+
+                        {/* Stock Out button */}
+                        <button
+                          onClick={() => {
+                            sessionStorage.setItem("selectedProductId", p.id.toString());
+                            router.push("/Dashboard/AddStockOut");
+                          }}
+                          className="rounded-lg bg-yellow-100 px-3 py-1.5 text-xs font-semibold text-yellow-700 hover:bg-yellow-200 transition-colors"
+                        >
+                          Stock Out
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer summary */}
+                <div className="flex items-center justify-between border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium text-gray-700">
+                      Total products: <span className="font-bold text-gray-900">{products.length}</span>
+                    </span>
+                    <div className="w-px h-4 bg-gray-300"></div>
+                    <span className="text-sm text-gray-600">
+                      Active: {products.filter(p => p.status === "available").length}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      Inactive: {products.filter(p => p.status === "unavailable").length}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Last updated: {new Date().toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -65,7 +65,8 @@ export default function RegisterPage() {
       const data: ApiResponse = await response.json();
       if (!response.ok) throw new Error(data.message || 'Registration failed');
 
-      router.push('/');
+      // Redirect to login page after successful registration
+      router.push('/Login');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
@@ -130,6 +131,8 @@ export default function RegisterPage() {
                   value={formData.first_name}
                   onChange={handleChange}
                   className="mt-1 border border-gray-300 rounded px-3 py-2 w-full text-sm"
+                  autoComplete="given-name"
+                  data-temp-mail-org="0"
                 />
               </div>
               <div>
@@ -144,6 +147,8 @@ export default function RegisterPage() {
                   value={formData.last_name}
                   onChange={handleChange}
                   className="mt-1 border border-gray-300 rounded px-3 py-2 w-full text-sm"
+                  autoComplete="family-name"
+                  data-temp-mail-org="0"
                 />
               </div>
             </div>
@@ -161,6 +166,9 @@ export default function RegisterPage() {
                 value={formData.email}
                 onChange={handleChange}
                 className="mt-1 border border-gray-300 rounded px-3 py-2 w-full text-sm"
+                autoComplete="email"
+                data-temp-mail-org="0"
+                suppressHydrationWarning={true}
               />
             </div>
 
@@ -177,6 +185,8 @@ export default function RegisterPage() {
                 value={formData.password}
                 onChange={handleChange}
                 className="mt-1 border border-gray-300 rounded px-3 py-2 w-full text-sm"
+                autoComplete="new-password"
+                data-temp-mail-org="0"
               />
             </div>
 
@@ -188,6 +198,7 @@ export default function RegisterPage() {
                 checked={agree}
                 onChange={(e) => setAgree(e.target.checked)}
                 className="w-4 h-4"
+                data-temp-mail-org="0"
               />
               <label htmlFor="terms" className="text-xs text-gray-600">
                 I agree to all terms and policies

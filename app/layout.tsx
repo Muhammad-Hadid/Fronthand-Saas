@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from 'react-hot-toast';
+import StoreSwitchNotification from './Components/StoreSwitchNotification';
+import { Providers } from './providers';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,11 +26,40 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
-        {children}
+        <Providers>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#fff',
+                color: '#363636',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                borderRadius: '8px',
+                padding: '12px 24px',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#10B981',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#EF4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+          <StoreSwitchNotification />
+          {children}
+        </Providers>
       </body>
     </html>
   );

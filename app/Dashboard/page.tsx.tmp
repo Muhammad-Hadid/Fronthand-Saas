@@ -1,0 +1,295 @@
+"use client";
+import { useState, useEffect } from 'react';
+import DashboardSidebar from "../Components/DashboardSidebar";
+import DashboardNavbar from "../Components/DashboardNavbar";
+import { Card, Metric, Text, Flex, ProgressBar } from "@tremor/react";
+
+// TypeScript interfaces
+interface StockData {
+  totalProducts: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+  zeroStockProducts: number;
+  mostStockProducts: number;
+}
+
+interface PurchaseData {
+  date: string;
+  referenceNo: string;
+  vendorName: string;
+  orderSubtotal: number;
+  otherCharges: number;
+  orderTotal: number;
+}
+
+interface ChartData {
+  labels: string[];
+  data: number[];
+}
+
+export default function Dashboard() {
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stockData, setStockData] = useState<StockData>({
+    totalProducts: 0,
+    lowStockProducts: 0,
+    outOfStockProducts: 0,
+    zeroStockProducts: 0,
+    mostStockProducts: 0
+  });
+  const [recentPurchases, setRecentPurchases] = useState<PurchaseData[]>([]);
+  const [salesData, setSalesData] = useState<ChartData>({ labels: [], data: [] });
+  const [revenueData, setRevenueData] = useState<ChartData>({ labels: [], data: [] });
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch stock data from your store API
+        const stockResponse = await fetch('/api/store/inventory/summary');
+        const stockStats = await stockResponse.json();
+        setStockData({
+          totalProducts: stockStats.total || 0,
+          lowStockProducts: stockStats.lowStock || 0,
+          outOfStockProducts: stockStats.outOfStock || 0,
+          zeroStockProducts: stockStats.zeroStock || 0,
+          mostStockProducts: stockStats.mostStock || 0
+        });
+
+        // Fetch recent purchases
+        const purchasesResponse = await fetch('/api/store/purchases/recent');
+        const purchasesData = await purchasesResponse.json();
+        setRecentPurchases(purchasesData);
+
+        // Fetch sales data
+        const salesResponse = await fetch('/api/store/sales/monthly');
+        const salesStats = await salesResponse.json();
+        setSalesData({
+          labels: salesStats.months || [],
+          data: salesStats.amounts || []
+        });
+
+        // Fetch revenue data
+        const revenueResponse = await fetch('/api/store/revenue/weekly');
+        const revenueStats = await revenueResponse.json();
+        setRevenueData({
+          labels: revenueStats.weeks || [],
+          data: revenueStats.amounts || []
+        });
+
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch dashboard data');
+        console.error('Dashboard data fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-4">⚠️</div>
+          <p className="text-gray-800 font-medium">Error loading dashboard data</p>
+          <p className="text-gray-600 mt-2">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex">
+      <DashboardSidebar />
+      <div className="flex-1 flex flex-col">
+        <DashboardNavbar />
+        
+        {/* Main Content */}
+        <main className="p-8 bg-gray-50 flex-1 overflow-auto">
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
+            <p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your inventory today.</p>
+          </div>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            {/* Total Products Card */}
+            <Card className="p-6 hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-blue-50 to-white">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Active</span>
+              </div>
+              <Text className="text-gray-600 font-medium">Total Products</Text>
+              <Metric>{stockData.totalProducts}</Metric>
+              <div className="mt-4">
+                <ProgressBar value={100} color="blue" className="mt-2" />
+                <Text className="text-sm text-gray-600 mt-2">100% Stock Status</Text>
+              </div>
+            </Card>
+
+            {/* Low Stock Products Card */}
+            <Card className="p-6 hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-yellow-50 to-white">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <span className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">Warning</span>
+              </div>
+              <Text className="text-gray-600 font-medium">Low Stock Products</Text>
+              <Metric>{stockData.lowStockProducts}</Metric>
+              <div className="mt-4">
+                <ProgressBar 
+                  value={(stockData.lowStockProducts / stockData.totalProducts) * 100} 
+                  color="yellow" 
+                  className="mt-2" 
+                />
+                <Text className="text-sm text-gray-600 mt-2">Need Attention</Text>
+              </div>
+            </Card>
+
+            {/* Out of Stock Card */}
+            <Card className="p-6 hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-red-50 to-white">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4m8-8v16" />
+                  </svg>
+                </div>
+                <span className="text-xs font-semibold text-red-600 bg-red-100 px-2 py-1 rounded-full">Critical</span>
+              </div>
+              <Text className="text-gray-600 font-medium">Out of Stock</Text>
+              <Metric>{stockData.outOfStockProducts}</Metric>
+              <div className="mt-4">
+                <ProgressBar 
+                  value={(stockData.outOfStockProducts / stockData.totalProducts) * 100} 
+                  color="red" 
+                  className="mt-2" 
+                />
+                <Text className="text-sm text-gray-600 mt-2">Critical Level</Text>
+              </div>
+            </Card>
+
+            {/* Zero Stock Card */}
+            <Card className="p-6 hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-orange-50 to-white">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <span className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full">Urgent</span>
+              </div>
+              <Text className="text-gray-600 font-medium">Zero Stock</Text>
+              <Metric>{stockData.zeroStockProducts}</Metric>
+              <div className="mt-4">
+                <ProgressBar 
+                  value={(stockData.zeroStockProducts / stockData.totalProducts) * 100} 
+                  color="orange" 
+                  className="mt-2" 
+                />
+                <Text className="text-sm text-gray-600 mt-2">Requires Restock</Text>
+              </div>
+            </Card>
+
+            {/* Most Stock Products Card */}
+            <Card className="p-6 hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-green-50 to-white">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">Optimal</span>
+              </div>
+              <Text className="text-gray-600 font-medium">Most Stock Products</Text>
+              <Metric>{stockData.mostStockProducts}</Metric>
+              <div className="mt-4">
+                <ProgressBar value={100} color="green" className="mt-2" />
+                <Text className="text-sm text-gray-600 mt-2">Well Stocked</Text>
+              </div>
+            </Card>
+          </div>
+
+          {/* Recent Purchase Invoice */}
+          <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <Text className="text-xl font-semibold text-gray-800">Recent Purchase Invoice</Text>
+                <Text className="text-sm text-gray-500 mt-1">Latest purchase transactions</Text>
+              </div>
+              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add New
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Purchase Date</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Reference No.</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Vendor Name</th>
+                    <th className="px-4 py-3.5 text-right text-sm font-semibold text-gray-900">Order Subtotal</th>
+                    <th className="px-4 py-3.5 text-right text-sm font-semibold text-gray-900">Other Charges</th>
+                    <th className="px-4 py-3.5 text-right text-sm font-semibold text-gray-900">Order Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {recentPurchases.map((purchase: PurchaseData, index: number) => (
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600">{purchase.date}</td>
+                      <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-blue-600">{purchase.referenceNo}</td>
+                      <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-900">{purchase.vendorName}</td>
+                      <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-900 text-right">${purchase.orderSubtotal}</td>
+                      <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 text-right">${purchase.otherCharges}</td>
+                      <td className="whitespace-nowrap px-4 py-4 text-sm font-semibold text-gray-900 text-right">${purchase.orderTotal}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between mt-6 border-t pt-4">
+              <Text className="text-sm text-gray-600">Showing {recentPurchases.length} entries</Text>
+              <div className="flex gap-2">
+                <button className="px-3 py-1 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded">Previous</button>
+                <button className="px-3 py-1 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded">Next</button>
+              </div>
+            </div>
+          </Card>
+        </main>
+      </div>
+    </div>
+  );
+}
