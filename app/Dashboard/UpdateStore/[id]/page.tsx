@@ -49,7 +49,7 @@ export default function UpdateProduct() {
 
       try {
         const response = await fetch(
-          `http://localhost:4000/product/getProduct/${id}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/product/getProduct/${id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -121,7 +121,7 @@ export default function UpdateProduct() {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/product/updateProduct/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/product/updateProduct/${id}`,
         {
           method: "PUT",
           headers: {

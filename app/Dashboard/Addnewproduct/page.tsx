@@ -56,7 +56,7 @@ export default function AddNewProduct() {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/product/addProduct",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/product/addProduct`,
         {
           method: "POST",
           headers: {

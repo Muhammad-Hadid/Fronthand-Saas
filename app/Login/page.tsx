@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -32,6 +32,14 @@ type ApiResponse = {
 };
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/Dashboard";
@@ -68,7 +76,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:4000/auth/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -213,7 +221,7 @@ export default function LoginPage() {
             {/* Register link */}
             <p className="text-xs text-gray-600 text-center mt-2">
               Don't have an account?{" "}
-              <Link href="http://localhost:3000/Register" className="text-indigo-600 hover:underline">
+              <Link href="/Register" className="text-indigo-600 hover:underline">
                 Sign up
               </Link>
             </p>

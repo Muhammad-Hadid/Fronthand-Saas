@@ -216,7 +216,7 @@ export default function CreateStore() {
         throw new Error('Authentication token not found');
       }
 
-      const res = await fetch("http://localhost:4000/api/createStore", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/createStore`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

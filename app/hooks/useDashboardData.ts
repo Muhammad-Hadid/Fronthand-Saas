@@ -38,10 +38,10 @@ export function useDashboardData() {
 
   const fetchDashboardData = async () => {
     try {
-      const stockStatusRes = await fetch('http://localhost:4000/api/stock/status');
-      const salesDataRes = await fetch('http://localhost:4000/api/sales/monthly');
-      const revenueDataRes = await fetch('http://localhost:4000/api/revenue/weekly');
-      const purchasesRes = await fetch('http://localhost:4000/api/purchases/recent');
+      const stockStatusRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/stock/status`);
+      const salesDataRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/sales/monthly`);
+      const revenueDataRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/revenue/weekly`);
+      const purchasesRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/purchases/recent`);
 
       const [stockStatus, salesData, revenueData, purchases] = await Promise.all([
         stockStatusRes.json(),
