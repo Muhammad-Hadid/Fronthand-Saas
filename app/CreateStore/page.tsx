@@ -210,8 +210,8 @@ export default function CreateStore() {
         cnic: formData.cnic.trim()
       };
 
-      // Get token from cookies
-      const token = document.cookie.match(new RegExp('(^| )token=([^;]+)'))?.at(2);
+      // Get token from localStorage (consistent with apiFetch)
+      const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Authentication token not found');
       }

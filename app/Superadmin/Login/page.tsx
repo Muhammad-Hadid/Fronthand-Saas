@@ -87,6 +87,9 @@ export default function SuperAdminLoginPage() {
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
       });
+      
+      // Also save token in localStorage for apiFetch function
+      localStorage.setItem("token", data.token);
 
       // Redirect to super admin overview
       router.push("/Superadmin/Overview");

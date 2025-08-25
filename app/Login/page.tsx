@@ -85,8 +85,9 @@ function LoginContent() {
       const data: ApiResponse = await response.json();
       if (!response.ok) throw new Error(data.message || "Login failed");
 
-      // Save token in cookies
+      // Save token in both cookies and localStorage
       Cookies.set("token", data.token, { expires: 1 }); // 1 day
+      localStorage.setItem("token", data.token); // For apiFetch function
 
       // Store user info and stores for potential store switching later
       const userDataWithStores = {
