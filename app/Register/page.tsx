@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { showError, showSuccess } from '../utils/toast';
 
 type FormData = {
   first_name: string;
@@ -32,7 +33,6 @@ export default function RegisterPage() {
     email: '',
     password: '',
   });
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [agree, setAgree] = useState(false);
 
@@ -48,12 +48,11 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (!agree) {
-      setError('You must agree to the terms and conditions.');
+      showError('You must agree to the terms and conditions.');
       return;
     }
 
     setIsLoading(true);
-    setError(null);
 
     try {
       const response = await fetch('http://localhost:4000/auth/register', {
@@ -65,10 +64,11 @@ export default function RegisterPage() {
       const data: ApiResponse = await response.json();
       if (!response.ok) throw new Error(data.message || 'Registration failed');
 
-      // Redirect to login page after successful registration
+      // Show success message and redirect to login page
+      showSuccess('Registration successful! Please log in.');
       router.push('/Login');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      showError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -102,19 +102,6 @@ export default function RegisterPage() {
             <span className="font-semibold">Manage your inventory easily</span><br />
             Fill in your details to start using your account.
           </p>
-
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mb-3 bg-red-50 border-l-4 border-red-500 p-2 rounded"
-              >
-                <p className="text-xs text-red-700">{error}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* First & Last Name */}

@@ -1,6 +1,7 @@
 "use client";
 import DashboardSidebar from "../../Components/DashboardSidebar";
 import DashboardNavbar from "@/app/Components/DashboardNavbar";
+import { showError } from "@/app/utils/toast";
 import { useRouter } from "next/navigation";
 
 import React, { useEffect, useState } from "react";
@@ -90,7 +91,6 @@ export default function StockHistory() {
   const [tenant, setTenant] = useState<string | null>(null);
   const [history, setHistory] = useState<StockHistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   // read tenant once on mount
   useEffect(() => {
@@ -102,16 +102,20 @@ export default function StockHistory() {
   useEffect(() => {
     if (!tenant) {
       setLoading(false);
-      setError("Tenant (subdomain) not found in localStorage or URL.");
-      return;
+      // Only show error after a delay to avoid flashing error on initial load
+      const timeoutId = setTimeout(() => {
+        if (!getTenantFromClient()) {
+          showError("Tenant (subdomain) not found in localStorage or URL.");
+        }
+      }, 1000);
+      return () => clearTimeout(timeoutId);
     }
 
     setLoading(true);
-    setError(null);
 
     fetchStockHistory(tenant)
       .then((data) => setHistory(data.history))
-      .catch((e: any) => setError(e?.message || "Failed to load stock history"))
+      .catch((e: any) => showError(e?.message || "Failed to load stock history"))
       .finally(() => setLoading(false));
   }, [tenant]);
 
@@ -152,15 +156,6 @@ export default function StockHistory() {
                 <div className="text-center">
                   <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
                   <p className="text-gray-600 text-lg">Loading stock history...</p>
-                </div>
-              </div>
-            ) : error ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-red-800 font-medium">{error}</span>
                 </div>
               </div>
             ) : history.length === 0 ? (

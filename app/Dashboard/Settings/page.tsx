@@ -2,6 +2,7 @@
 import DashboardSidebar from "../../Components/DashboardSidebar";
 import DashboardNavbar from "@/app/Components/DashboardNavbar";
 import { useEffect, useState } from "react";
+import { useCurrency, CURRENCIES, type CurrencyCode } from "@/app/utils/currency";
 import { 
   User, 
   Building, 
@@ -50,6 +51,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'store' | 'display'>('profile');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const { currency, setCurrency } = useCurrency();
   
   // User Profile Data
   const [userData, setUserData] = useState<UserData>({
@@ -65,15 +67,20 @@ export default function SettingsPage() {
     phone: ''
   });
 
-  // Display Settings
+  // Display Settings - sync with currency context
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
     theme: 'light',
     language: 'English',
-    currency: 'USD'
+    currency: currency
   });
 
   const [tenant, setTenant] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  // Sync display settings currency with context
+  useEffect(() => {
+    setDisplaySettings(prev => ({ ...prev, currency }));
+  }, [currency]);
 
   // Load data on mount
   useEffect(() => {
@@ -178,14 +185,6 @@ export default function SettingsPage() {
     { code: 'French', name: 'Français' },
     { code: 'German', name: 'Deutsch' },
     { code: 'Urdu', name: 'اردو' }
-  ];
-
-  const currencies = [
-    { code: 'USD', name: 'US Dollar ($)', symbol: '$' },
-    { code: 'EUR', name: 'Euro (€)', symbol: '€' },
-    { code: 'GBP', name: 'British Pound (£)', symbol: '£' },
-    { code: 'PKR', name: 'Pakistani Rupee (₨)', symbol: '₨' },
-    { code: 'INR', name: 'Indian Rupee (₹)', symbol: '₹' }
   ];
 
   return (
@@ -423,12 +422,16 @@ export default function SettingsPage() {
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Currency</label>
                         <select
                           value={displaySettings.currency}
-                          onChange={(e) => setDisplaySettings(prev => ({ ...prev, currency: e.target.value }))}
+                          onChange={(e) => {
+                            const newCurrency = e.target.value as CurrencyCode;
+                            setDisplaySettings(prev => ({ ...prev, currency: newCurrency }));
+                            setCurrency(newCurrency);
+                          }}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                         >
-                          {currencies.map((currency) => (
-                            <option key={currency.code} value={currency.code}>
-                              {currency.name}
+                          {Object.values(CURRENCIES).map((currencyInfo) => (
+                            <option key={currencyInfo.code} value={currencyInfo.code}>
+                              {currencyInfo.name} ({currencyInfo.symbol})
                             </option>
                           ))}
                         </select>

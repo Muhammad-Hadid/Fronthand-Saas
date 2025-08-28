@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export default function FeatureSection() {
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   const features = [
     {

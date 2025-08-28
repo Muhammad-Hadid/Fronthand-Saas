@@ -1,6 +1,8 @@
 "use client";
 import DashboardSidebar from "@/app/Components/DashboardSidebar";
 import DashboardNavbar from "@/app/Components/DashboardNavbar";
+import { useCurrency } from "@/app/utils/currency";
+import { showError } from "@/app/utils/toast";
 import React, { useEffect, useState } from "react";
 
 type Metric = {
@@ -90,6 +92,7 @@ async function fetchStockHistory(tenant: string): Promise<{ history: StockHistor
 }
 
 export default function Dashboard() {
+  const { formatPrice } = useCurrency();
   const [tenant, setTenant] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<Metric>({
     totalProducts: 0,
@@ -102,7 +105,6 @@ export default function Dashboard() {
   });
   const [history, setHistory] = useState<StockHistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [isClient, setIsClient] = useState(false);
 
@@ -176,7 +178,7 @@ export default function Dashboard() {
           });
           setHistory(stockHistory.history.slice(0, 5)); // Recent 5 for dashboard
         })
-        .catch((e: any) => setError(e?.message || "Failed to load dashboard data"))
+        .catch((e: any) => showError(e?.message || "Failed to load dashboard data"))
         .finally(() => setLoading(false));
     }
   };
@@ -201,8 +203,7 @@ export default function Dashboard() {
       // Update tenant immediately
       setTenant(newStore.subdomain);
       
-      // Reset states
-      setError(null);
+      // Reset states and refresh data
       setLoading(true);
       
       // Refresh data with new store
@@ -281,10 +282,6 @@ export default function Dashboard() {
               <div className="flex items-center justify-center py-24">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
-            ) : error ? (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-                {error}
-              </div>
             ) : (
               <>
                 {/* Metrics Cards */}
@@ -302,7 +299,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <p className="text-2xl font-bold text-gray-900">
-                      ${metrics.totalValue.toFixed(2)}
+                      {formatPrice(metrics.totalValue)}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       Based on {metrics.totalProducts} products

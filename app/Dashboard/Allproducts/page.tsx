@@ -2,6 +2,8 @@
 import DashboardSidebar from "../../Components/DashboardSidebar";
 import DashboardNavbar from "@/app/Components/DashboardNavbar";
 import ProtectedRoute from "@/app/Components/ProtectedRoute";
+import { useCurrency } from "@/app/utils/currency";
+import { showError } from "@/app/utils/toast";
 import { useRouter } from "next/navigation";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -70,10 +72,10 @@ async function fetchProducts(tenant: string): Promise<Product[]> {
 
 export default function ProductsPage() {
   const router = useRouter();
+  const { formatPrice } = useCurrency();
   const [tenant, setTenant] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   // read tenant once on mount
   useEffect(() => {
@@ -85,16 +87,20 @@ export default function ProductsPage() {
   useEffect(() => {
     if (!tenant) {
       setLoading(false);
-      setError("Tenant (subdomain) not found in localStorage or URL.");
-      return;
+      // Only show error after a delay to avoid flashing error on initial load
+      const timeoutId = setTimeout(() => {
+        if (!getTenantFromClient()) {
+          showError("Tenant (subdomain) not found in localStorage or URL.");
+        }
+      }, 1000);
+      return () => clearTimeout(timeoutId);
     }
 
     setLoading(true);
-    setError(null);
 
     fetchProducts(tenant)
       .then((data) => setProducts(data))
-      .catch((e: any) => setError(e?.message || "Failed to load products"))
+      .catch((e: any) => showError(e?.message || "Failed to load products"))
       .finally(() => setLoading(false));
   }, [tenant]);
 
@@ -152,15 +158,6 @@ export default function ProductsPage() {
                   <p className="text-gray-600 text-lg">Loading products...</p>
                 </div>
               </div>
-            ) : error ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-red-800 font-medium">{error}</span>
-                </div>
-              </div>
             ) : products.length === 0 ? (
               <div className="rounded-xl border-2 border-dashed border-gray-300 bg-white p-16 text-center shadow-sm">
                 <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 48 48">
@@ -173,14 +170,14 @@ export default function ProductsPage() {
               <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Table header */}
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                  <div className="grid grid-cols-11 gap-4 px-6 py-4 text-sm font-semibold text-gray-700">
+                  <div className="grid grid-cols-12 gap-4 px-6 py-4 text-sm font-semibold text-gray-700">
                     <div className="col-span-1">ID</div>
-                    <div className="col-span-3">Product Details</div>
-                    <div className="col-span-1">Category</div>
+                    <div className="col-span-4">Product Details</div>
+                    <div className="col-span-2">Category</div>
                     <div className="col-span-1">Price</div>
                     <div className="col-span-1">Quantity</div>
                     <div className="col-span-1">Status</div>
-                    <div className="col-span-3">Actions</div>
+                    <div className="col-span-2">Actions</div>
                   </div>
                 </div>
 
@@ -189,7 +186,7 @@ export default function ProductsPage() {
                   {products.map((p, index) => (
                     <div
                       key={p.id}
-                      className={`grid grid-cols-11 gap-4 px-6 py-5 text-sm items-center hover:bg-blue-50 transition-colors duration-150 ${
+                      className={`grid grid-cols-12 gap-4 px-6 py-5 text-sm items-center hover:bg-blue-50 transition-colors duration-150 ${
                         index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                       }`}
                     >
@@ -201,12 +198,7 @@ export default function ProductsPage() {
                       </div>
 
                       {/* Product Details */}
-                      <div className="col-span-3 flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center shadow-sm">
-                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                          </svg>
-                        </div>
+                      <div className="col-span-4 flex items-center">
                         <div className="min-w-0 flex-1">
                           <div className="font-semibold text-gray-900 truncate text-base">
                             {p.name}
@@ -218,7 +210,7 @@ export default function ProductsPage() {
                       </div>
 
                       {/* Category */}
-                      <div className="col-span-1">
+                      <div className="col-span-2">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                           {p.category}
                         </span>
@@ -226,7 +218,7 @@ export default function ProductsPage() {
 
                       {/* Price */}
                       <div className="col-span-1">
-                        <div className="font-bold text-gray-900 text-base">${p.price}</div>
+                        <div className="font-bold text-gray-900 text-base">{formatPrice(parseFloat(p.price))}</div>
                       </div>
 
                       {/* Quantity */}
@@ -239,22 +231,24 @@ export default function ProductsPage() {
 
                       {/* Status */}
                       <div className="col-span-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center">
                           <div
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-300 ${
                               p.status === "available"
                                 ? "bg-green-500"
                                 : "bg-gray-300"
                             }`}
                           >
                             <div
-                              className={`inline-block h-4 w-4 rounded-full bg-white shadow-lg transform transition-transform duration-300 ${
-                                p.status === "available" ? "translate-x-6" : "translate-x-1"
+                              className={`inline-block h-3 w-3 rounded-full bg-white shadow-lg transform transition-transform duration-300 ${
+                                p.status === "available" ? "translate-x-5" : "translate-x-1"
                               }`}
                             />
                           </div>
+                        </div>
+                        <div className="text-center mt-1">
                           <span
-                            className={`text-sm font-medium ${
+                            className={`text-xs font-medium ${
                               p.status === "available"
                                 ? "text-green-600"
                                 : "text-gray-500"
@@ -266,9 +260,9 @@ export default function ProductsPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="col-span-3 flex items-center gap-2">
+                      <div className="col-span-2 flex items-center gap-2">
                         {/* View button */}
-                        <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                        <button className="flex items-center justify-center p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
                           <svg
                             className="w-4 h-4"
                             fill="none"
@@ -295,7 +289,7 @@ export default function ProductsPage() {
                           onClick={() => {
                             router.push(`/Dashboard/UpdateStore/${p.id}`);
                           }}
-                          className="rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-200 transition-colors"
+                          className="rounded-md bg-blue-100 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-200 transition-colors"
                         >
                           Edit
                         </button>
@@ -305,7 +299,7 @@ export default function ProductsPage() {
                           onClick={() => {
                             router.push(`/Dashboard/DeleteProduct/${p.id}`);
                           }}
-                          className="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-200 transition-colors"
+                          className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-200 transition-colors"
                         >
                           Delete
                         </button>

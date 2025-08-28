@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/app/Components/ProtectedRoute";
+import { showError, showSuccess } from "@/app/utils/toast";
 
 export default function CreateStore() {
   const router = useRouter();
@@ -27,13 +28,11 @@ export default function CreateStore() {
     cnic?: string;
     store_address?: string;
     city?: string;
-    general?: string;
     [key: string]: string | undefined;
   }
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
 
   // Enhanced slugify function with validation
   const slugify = (text: string) => {
@@ -187,9 +186,6 @@ export default function CreateStore() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Clear previous messages
-    setSuccessMessage("");
-    
     // Validate form
     if (!validateForm()) {
       return;
@@ -236,7 +232,7 @@ export default function CreateStore() {
           localStorage.setItem('subdomain', data.store.subdomain);
         }
         
-        setSuccessMessage("Store created successfully! Redirecting to stores list...");
+        showSuccess("Store created successfully! Redirecting to stores list...");
         // Clear form on success
         setFormData({
           store_name: "",
@@ -259,16 +255,14 @@ export default function CreateStore() {
         if (data.errors && typeof data.errors === 'object') {
           setErrors(data.errors);
         } else if (data.message && data.message.includes('duplicate')) {
-          setErrors({ general: "A store with this name or email already exists" });
+          showError("A store with this name or email already exists");
         } else {
-          setErrors({ general: data.error || data.message || "Failed to create store" });
+          showError(data.error || data.message || "Failed to create store");
         }
       }
     } catch (error) {
       console.error("Network Error:", error);
-      setErrors({ 
-        general: "Network error. Please check your internet connection and try again." 
-      });
+      showError("Network error. Please check your internet connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -288,26 +282,6 @@ export default function CreateStore() {
             Fill in the details below to register a new store in your inventory system
           </p>
         </div>
-
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center">
-              <div className="text-green-600 mr-2">✅</div>
-              <p className="text-green-800 font-medium">{successMessage}</p>
-            </div>
-          </div>
-        )}
-
-        {/* General Error Message */}
-        {errors.general && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center">
-              <div className="text-red-600 mr-2">❌</div>
-              <p className="text-red-800 font-medium">{errors.general}</p>
-            </div>
-          </div>
-        )}
 
         <form
           onSubmit={handleSubmit}

@@ -1,6 +1,8 @@
 "use client";
 import DashboardSidebar from "../../Components/DashboardSidebar";
 import DashboardNavbar from "@/app/Components/DashboardNavbar";
+import { useCurrency } from "@/app/utils/currency";
+import { showError } from "@/app/utils/toast";
 import { useEffect, useState } from "react";
 import { 
   TrendingUp, 
@@ -114,9 +116,9 @@ async function fetchStockHistory(tenant: string): Promise<any> {
 }
 
 export default function ReportsPage() {
+  const { formatPrice } = useCurrency();
   const [tenant, setTenant] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   
   // Report data states
@@ -136,7 +138,6 @@ export default function ReportsPage() {
     if (!tenant) return;
 
     setLoading(true);
-    setError(null);
 
     try {
       const [products, stockData] = await Promise.all([
@@ -272,7 +273,7 @@ export default function ReportsPage() {
       setLastRefresh(new Date());
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load reports data");
+      showError(err instanceof Error ? err.message : "Failed to load reports data");
     } finally {
       setLoading(false);
     }
@@ -334,10 +335,6 @@ export default function ReportsPage() {
               <div className="flex items-center justify-center py-24">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
-            ) : error ? (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-                {error}
-              </div>
             ) : (
               <div className="space-y-6">
                 {/* Inventory Health Overview */}
@@ -385,7 +382,7 @@ export default function ReportsPage() {
                           <DollarSign className="w-5 h-5 text-green-600 mr-2" />
                           <span className="text-sm text-green-600 font-medium">Total Value</span>
                         </div>
-                        <p className="text-2xl font-bold text-green-900 mt-1">${inventoryHealth.totalValue.toFixed(2)}</p>
+                        <p className="text-2xl font-bold text-green-900 mt-1">{formatPrice(inventoryHealth.totalValue)}</p>
                       </div>
                       
                       <div className="bg-purple-50 p-4 rounded-lg">
@@ -434,7 +431,7 @@ export default function ReportsPage() {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.totalSold}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.revenue.toFixed(2)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatPrice(product.revenue)}</td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`text-sm font-medium ${product.profitMargin > 20 ? 'text-green-600' : product.profitMargin > 10 ? 'text-yellow-600' : 'text-red-600'}`}>
                                   {product.profitMargin.toFixed(1)}%
@@ -465,11 +462,11 @@ export default function ReportsPage() {
                           </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Total Value:</span>
-                            <span className="font-medium">${category.totalValue.toFixed(2)}</span>
+                            <span className="font-medium">{formatPrice(category.totalValue)}</span>
                           </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Avg Price:</span>
-                            <span className="font-medium">${category.avgPrice.toFixed(2)}</span>
+                            <span className="font-medium">{formatPrice(category.avgPrice)}</span>
                           </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Total Quantity:</span>
@@ -502,10 +499,10 @@ export default function ReportsPage() {
                         {revenueAnalytics.map((period) => (
                           <tr key={period.period} className="border-b border-gray-100">
                             <td className="py-3 text-sm text-gray-900">{period.period}</td>
-                            <td className="py-3 text-sm font-medium text-green-600">${period.revenue.toFixed(2)}</td>
-                            <td className="py-3 text-sm font-medium text-blue-600">${period.profit.toFixed(2)}</td>
+                            <td className="py-3 text-sm font-medium text-green-600">{formatPrice(period.revenue)}</td>
+                            <td className="py-3 text-sm font-medium text-blue-600">{formatPrice(period.profit)}</td>
                             <td className="py-3 text-sm text-gray-900">{period.orders}</td>
-                            <td className="py-3 text-sm text-gray-900">${period.avgOrderValue.toFixed(2)}</td>
+                            <td className="py-3 text-sm text-gray-900">{formatPrice(period.avgOrderValue)}</td>
                           </tr>
                         ))}
                       </tbody>

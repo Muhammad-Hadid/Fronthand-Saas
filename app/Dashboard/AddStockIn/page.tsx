@@ -1,6 +1,7 @@
 "use client";
 import DashboardSidebar from "@/app/Components/DashboardSidebar";
 import DashboardNavbar from "@/app/Components/DashboardNavbar";
+import { showError, showSuccess } from "@/app/utils/toast";
 import React, { useState } from "react";
 
 export default function AddStockIn() {
@@ -16,8 +17,6 @@ export default function AddStockIn() {
     status: "available" as "available" | "unavailable",
   });
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   // ✅ Token cookies se nikalna
   function getTokenFromCookies(): string | null {
@@ -42,13 +41,11 @@ export default function AddStockIn() {
     const token = getTokenFromCookies();
 
     if (!tenant || !token) {
-      setError("Tenant or Token not found ❌");
+      showError("Tenant or Token not found ❌");
       return;
     }
 
     setLoading(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const response = await fetch(`http://localhost:4000/stockin/addStockIn`, {
@@ -68,7 +65,7 @@ export default function AddStockIn() {
         throw new Error(data.error || `Failed with status ${response.status}`);
       }
 
-      setSuccess(data.message || "Stock added successfully ✅");
+      showSuccess(data.message || "Stock added successfully ✅");
       setFormData({
         name: "",
         description: "",
@@ -81,7 +78,7 @@ export default function AddStockIn() {
         status: "available",
       });
     } catch (e: any) {
-      setError(e?.message || "Failed to add stock ❌");
+      showError(e?.message || "Failed to add stock ❌");
     } finally {
       setLoading(false);
     }
@@ -117,16 +114,6 @@ export default function AddStockIn() {
             {loading && (
               <div className="flex justify-center py-6">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-green-600" />
-              </div>
-            )}
-            {error && (
-              <div className="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="bg-green-50 text-green-700 text-sm p-3 rounded mb-4">
-                {success}
               </div>
             )}
 

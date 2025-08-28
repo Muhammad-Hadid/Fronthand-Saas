@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, Metric, Text, Flex, ProgressBar } from "@tremor/react";
+import { showError } from '../utils/toast';
 
 interface Product {
   id: number;
@@ -36,7 +37,6 @@ interface ChartData {
 
 export default function DashboardContent() {
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const [stockData, setStockData] = useState<StockData>({
@@ -141,9 +141,8 @@ export default function DashboardContent() {
           data: movementData
         });
 
-        setError(null);
       } catch (err) {
-        setError('Failed to load dashboard data');
+        showError('Failed to load dashboard data');
         console.error('Dashboard data loading error:', err);
       } finally {
         setLoading(false);
@@ -166,24 +165,6 @@ export default function DashboardContent() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading dashboard data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-xl mb-4">⚠️</div>
-          <p className="text-gray-800 font-medium">Error loading dashboard data</p>
-          <p className="text-gray-600 mt-2">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Try Again
-          </button>
         </div>
       </div>
     );

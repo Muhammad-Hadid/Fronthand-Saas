@@ -1,6 +1,7 @@
 "use client";
 import DashboardSidebar from "@/app/Components/DashboardSidebar";
 import DashboardNavbar from "@/app/Components/DashboardNavbar";
+import { showError, showSuccess } from "@/app/utils/toast";
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -8,8 +9,6 @@ export default function DeleteProduct() {
   const router = useRouter();
   const params = useParams();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const getTokenFromCookies = () => {
     const match = document.cookie.match(new RegExp("(^| )token=([^;]+)"));
@@ -22,15 +21,13 @@ export default function DeleteProduct() {
 
   const handleDelete = async () => {
     setLoading(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const tenant = getTenantFromClient();
       const token = getTokenFromCookies();
 
       if (!token) {
-        setError("Please login first");
+        showError("Please login first");
         return;
       }
 
@@ -50,15 +47,15 @@ export default function DeleteProduct() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Product deleted successfully");
+        showSuccess("Product deleted successfully");
         setTimeout(() => {
           router.push('/Dashboard/Allproducts');
         }, 1000);
       } else {
-        setError(data.message || "Failed to delete product");
+        showError(data.message || "Failed to delete product");
       }
     } catch (e: any) {
-      setError(e?.message || "Failed to delete product");
+      showError(e?.message || "Failed to delete product");
     } finally {
       setLoading(false);
     }
@@ -81,18 +78,6 @@ export default function DeleteProduct() {
             {loading && (
               <div className="text-center text-gray-600 mb-4">
                 <p>Deleting product...</p>
-              </div>
-            )}
-
-            {error && (
-              <div className="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="bg-green-50 text-green-700 text-sm p-3 rounded mb-4">
-                {success}
               </div>
             )}
 

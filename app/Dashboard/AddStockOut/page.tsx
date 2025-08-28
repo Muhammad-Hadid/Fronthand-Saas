@@ -1,11 +1,14 @@
 "use client";
 import DashboardSidebar from "@/app/Components/DashboardSidebar";
 import DashboardNavbar from "@/app/Components/DashboardNavbar";
+import { useCurrency } from "@/app/utils/currency";
+import { showError, showSuccess } from "@/app/utils/toast";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import jsPDF from 'jspdf';
 
 export default function AddStockOut() {
+  const { formatPrice, getCurrencySymbol } = useCurrency();
   const [formData, setFormData] = useState({
     product_id: 0,
     quantity_sold: 0,
@@ -13,8 +16,6 @@ export default function AddStockOut() {
     customer_name: "",
   });
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
   // ✅ Token cookies se nikalna
@@ -53,13 +54,11 @@ export default function AddStockOut() {
     const token = getTokenFromCookies();
 
     if (!tenant || !token) {
-      setError("Tenant or Token not found ❌");
+      showError("Tenant or Token not found ❌");
       return;
     }
 
     setLoading(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const response = await fetch(`http://localhost:4000/stockout/addStockOut`, {
@@ -79,7 +78,7 @@ export default function AddStockOut() {
         throw new Error(data.error || `Failed with status ${response.status}`);
       }
 
-      setSuccess(data.message || "Stock out created successfully ✅");
+      showSuccess(data.message || "Stock out created successfully ✅");
       
       // Generate PDF automatically after successful submission
       generatePDF();
@@ -92,7 +91,7 @@ export default function AddStockOut() {
         customer_name: "",
       }));
     } catch (e: any) {
-      setError(e?.message || "Failed to create stock out ❌");
+      showError(e?.message || "Failed to create stock out ❌");
     } finally {
       setLoading(false);
     }
@@ -120,17 +119,8 @@ export default function AddStockOut() {
       customer_name: "",
     });
     
-    // Clear messages
-    setError(null);
-    setSuccess(null);
-    
     // Show feedback
-    const timeout = setTimeout(() => {
-      setSuccess("Form has been reset ✅");
-      setTimeout(() => setSuccess(null), 2000);
-    }, 100);
-    
-    return () => clearTimeout(timeout);
+    showSuccess("Form has been reset ✅");
   };
 
   const handleAddMore = () => {
@@ -176,7 +166,7 @@ export default function AddStockOut() {
     doc.setTextColor(68, 68, 68);
     doc.text(`Product ID: ${formData.product_id}`, 30, 95);
     doc.text(`Quantity: ${formData.quantity_sold} units`, 30, 103);
-    doc.text(`Unit Price: $${formData.unit_price.toFixed(2)}`, 30, 111);
+    doc.text(`Unit Price: ${formatPrice(formData.unit_price)}`, 30, 111);
     
     // Add horizontal line before total
     doc.setLineWidth(0.3);
@@ -188,7 +178,7 @@ export default function AddStockOut() {
     doc.text("Total Amount:", 20, 130);
     doc.setFontSize(16);
     doc.setTextColor(0, 102, 204);
-    doc.text(`$${totalPrice.toFixed(2)}`, 80, 130);
+    doc.text(`${formatPrice(totalPrice)}`, 80, 130);
     
     // Footer
     doc.setFontSize(10);
@@ -217,16 +207,6 @@ export default function AddStockOut() {
             {loading && (
               <div className="flex justify-center py-6">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-yellow-600" />
-              </div>
-            )}
-            {error && (
-              <div className="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="bg-green-50 text-green-700 text-sm p-3 rounded mb-4">
-                {success}
               </div>
             )}
 
@@ -261,7 +241,7 @@ export default function AddStockOut() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Unit Price
+                  Unit Price ({getCurrencySymbol()})
                 </label>
                 <input
                   type="number"
@@ -269,7 +249,7 @@ export default function AddStockOut() {
                   value={formData.unit_price}
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
-                  placeholder="Enter unit price"
+                  placeholder={`Enter unit price in ${getCurrencySymbol()}`}
                   required
                 />
               </div>
@@ -288,6 +268,18 @@ export default function AddStockOut() {
                   required
                 />
               </div>
+
+              {/* Total Amount Display */}
+              {formData.quantity_sold > 0 && formData.unit_price > 0 && (
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">Total Amount:</span>
+                    <span className="text-lg font-bold text-green-600">
+                      {formatPrice(formData.quantity_sold * formData.unit_price)}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-col space-y-3">
                 {/* Main Action Buttons */}
