@@ -152,7 +152,7 @@ const DashboardNavbar: React.FC = () => {
         .find(row => row.startsWith('token='))
         ?.split('=')[1];
 
-      const response = await fetch("http://localhost:4000/product/getAllProducts", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/product/getAllProducts`, {
         method: "GET",
         headers: {
           Accept: "application/json",

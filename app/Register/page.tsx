@@ -55,7 +55,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:4000/auth/register', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -204,7 +204,7 @@ export default function RegisterPage() {
             {/* Login */}
             <p className="text-xs text-gray-600 text-center mt-2">
               Already have an account?{' '}
-              <Link href="http://localhost:3000/Login" className="text-indigo-600 hover:underline">
+              <Link href="/Login" className="text-indigo-600 hover:underline">
                 Log in
               </Link>
             </p>

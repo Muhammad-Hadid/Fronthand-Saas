@@ -206,13 +206,13 @@ export default function CreateStore() {
         cnic: formData.cnic.trim()
       };
 
-      // Get token from cookies
-      const token = document.cookie.match(new RegExp('(^| )token=([^;]+)'))?.at(2);
+      // Get token from localStorage (consistent with apiFetch)
+      const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Authentication token not found');
       }
 
-      const res = await fetch("http://localhost:4000/api/createStore", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/createStore`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

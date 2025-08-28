@@ -101,7 +101,7 @@ export async function fetchUserStores(): Promise<any[]> {
 
   try {
     // First, try the dedicated user-stores endpoint
-    const response = await fetch("http://localhost:4000/auth/user-stores", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user-stores`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -120,7 +120,7 @@ export async function fetchUserStores(): Promise<any[]> {
 
   // Fallback: Try to get user profile/info which might include stores
   try {
-    const profileResponse = await fetch("http://localhost:4000/auth/profile", {
+    const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/profile`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -245,7 +245,7 @@ export async function superAdminLogout(): Promise<boolean> {
     
     // For httpOnly cookies, we don't need to manually get the token
     // The browser will automatically send it with credentials: 'include'
-    const response = await fetch(`http://localhost:4000/superadmin/logout`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/superadmin/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

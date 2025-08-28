@@ -88,7 +88,7 @@ export default function DashboardContent() {
         };
         
         // Fetch all products
-        const productsResponse = await fetch('http://localhost:4000/product/getAllProducts', {
+        const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/product/getAllProducts`, {
           headers,
           credentials: 'include',
         });
@@ -101,7 +101,7 @@ export default function DashboardContent() {
         setProducts(productsData);
 
         // Fetch stock history
-        const historyResponse = await fetch('http://localhost:4000/stockhistory/getAllStockHistory', {
+        const historyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/stockhistory/getAllStockHistory`, {
           headers,
           credentials: 'include',
         });

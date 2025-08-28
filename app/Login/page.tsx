@@ -68,7 +68,7 @@ function LoginContent() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4000/auth/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -77,8 +77,9 @@ function LoginContent() {
       const data: ApiResponse = await response.json();
       if (!response.ok) throw new Error(data.message || "Login failed");
 
-      // Save token in cookies
+      // Save token in both cookies and localStorage
       Cookies.set("token", data.token, { expires: 1 }); // 1 day
+      localStorage.setItem("token", data.token); // For apiFetch function
 
       // Store user info and stores for potential store switching later
       const userDataWithStores = {
@@ -218,7 +219,7 @@ function LoginContent() {
             {/* Register link */}
             <p className="text-xs text-gray-600 text-center mt-2">
               Don't have an account?{" "}
-              <Link href="http://localhost:3000/Register" className="text-indigo-600 hover:underline">
+              <Link href="/Register" className="text-indigo-600 hover:underline">
                 Sign up
               </Link>
             </p>

@@ -48,7 +48,7 @@ async function fetchProducts(tenant: string): Promise<Product[]> {
     .find(row => row.startsWith('token='))
     ?.split('=')[1];
 
-  const res = await fetch("http://localhost:4000/product/getAllProducts", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/product/getAllProducts`, {
     method: "GET",
     headers: {
       Accept: "application/json",

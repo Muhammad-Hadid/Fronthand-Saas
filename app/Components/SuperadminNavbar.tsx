@@ -17,7 +17,7 @@ export default function SuperadminNavbar() {
       
       try {
         // Don't try to read httpOnly token, just rely on credentials: 'include'
-        const response = await fetch('http://localhost:4000/superadmin/logout', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/superadmin/logout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

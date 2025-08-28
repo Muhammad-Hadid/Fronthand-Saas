@@ -32,7 +32,7 @@ export default function DeleteProduct() {
       }
 
       const response = await fetch(
-        `http://localhost:4000/product/deleteProduct/${params?.id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/product/deleteProduct/${params?.id}`,
         {
           method: "DELETE",
           headers: {

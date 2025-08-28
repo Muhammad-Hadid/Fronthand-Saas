@@ -9,17 +9,21 @@ export type HostsInstructions = {
 };
 
 export const generateSubdomainUrl = (subdomain: string): string => {
-  if (!subdomain) return 'http://localhost:3000';
+  if (!subdomain) return process.env.NEXT_PUBLIC_APP_BASE_URL || 'http://localhost:3000';
   const cleanSubdomain = subdomain.replace('.martory.com', '').split('.')[0];
-  return `http://${cleanSubdomain}.localhost:3000`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_BASE_URL || 'http://localhost:3000';
+  const port = baseUrl.split(':')[2] || '3000';
+  return `http://${cleanSubdomain}.localhost:${port}`;
 };
 
 export const generateHostsFileInstructions = (subdomain: string): HostsInstructions => {
   const cleanSubdomain = subdomain.replace('.martory.com', '').split('.')[0];
+  const baseUrl = process.env.NEXT_PUBLIC_APP_BASE_URL || 'http://localhost:3000';
+  const port = baseUrl.split(':')[2] || '3000';
   
   return {
     subdomain: cleanSubdomain,
-    url: `http://${cleanSubdomain}.localhost:3000`,
+    url: `http://${cleanSubdomain}.localhost:${port}`,
     instructions: {
       windows: `1. Open Notepad as Administrator
 2. Open: C:\\Windows\\System32\\drivers\\etc\\hosts

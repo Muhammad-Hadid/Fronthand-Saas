@@ -48,7 +48,7 @@ export default function AddStockIn() {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:4000/stockin/addStockIn`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/stockin/addStockIn`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
