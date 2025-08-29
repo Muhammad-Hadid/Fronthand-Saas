@@ -71,9 +71,9 @@ export default function CreateStore() {
       
       case "contact_info":
         if (!value.trim()) return "Contact number is required";
-        const phoneRegex = /^(\+92|0)?[0-9]{10,11}$/;
+        const phoneRegex = /^(\+\d{1,3})?[\s-]?[0-9]{7,15}$/;
         const cleanPhone = value.replace(/[\s-]/g, "");
-        if (!phoneRegex.test(cleanPhone)) return "Please enter a valid Pakistani phone number";
+        if (!phoneRegex.test(cleanPhone)) return "Please enter a valid phone number";
         return "";
       
       case "cnic":
@@ -430,7 +430,7 @@ export default function CreateStore() {
                 <input
                   type="text"
                   name="contact_info"
-                  placeholder="+92 300 1234567 or 03001234567"
+                 
                   value={formData.contact_info}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 ${
