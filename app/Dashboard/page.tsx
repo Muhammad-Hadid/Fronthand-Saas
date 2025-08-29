@@ -5,6 +5,7 @@ import { useCurrency } from "@/app/utils/currency";
 import { showError } from "@/app/utils/toast";
 import React, { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Metric = {
   totalProducts: number;
@@ -94,6 +95,7 @@ async function fetchStockHistory(tenant: string): Promise<{ history: StockHistor
 
 export default function Dashboard() {
   const { formatPrice } = useCurrency();
+  const router = useRouter();
   const [tenant, setTenant] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<Metric>({
     totalProducts: 0,
@@ -189,7 +191,12 @@ export default function Dashboard() {
   useEffect(() => {
     const t = getTenantFromClient();
     setTenant(t);
-  }, []);
+    
+    // If no tenant/store found, redirect to CreateStore page
+    if (!t) {
+      router.push('/CreateStore');
+    }
+  }, [router]);
 
   // fetch data when tenant available
   useEffect(() => {
