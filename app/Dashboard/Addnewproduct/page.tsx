@@ -1,11 +1,13 @@
 "use client";
 import DashboardNavbar from "@/app/Components/DashboardNavbar";
 import DashboardSidebar from "@/app/Components/DashboardSidebar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import toast from 'react-hot-toast';
 import { Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function AddNewProduct() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -15,6 +17,14 @@ export default function AddNewProduct() {
     status: "available",
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Check for tenant on page load and redirect if none found
+  useEffect(() => {
+    const tenant = localStorage.getItem("subdomain");
+    if (!tenant) {
+      router.push('/CreateStore');
+    }
+  }, [router]);
 
   // Token read karna cookies se
   const getTokenFromCookies = () => {
