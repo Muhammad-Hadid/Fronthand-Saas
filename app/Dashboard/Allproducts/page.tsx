@@ -5,6 +5,7 @@ import ProtectedRoute from "@/app/Components/ProtectedRoute";
 import { useCurrency } from "@/app/utils/currency";
 import { showError } from "@/app/utils/toast";
 import { useRouter } from "next/navigation";
+import { Menu, X } from "lucide-react";
 
 import React, { useEffect, useMemo, useState } from "react";
 
@@ -70,12 +71,13 @@ async function fetchProducts(tenant: string): Promise<Product[]> {
 
 // --- page component ------------------------------------------------------
 
-export default function ProductsPage() {
+function ProductsPage() {
   const router = useRouter();
   const { formatPrice } = useCurrency();
   const [tenant, setTenant] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // read tenant once on mount
   useEffect(() => {
@@ -110,22 +112,48 @@ export default function ProductsPage() {
         {/* Dashboard Navbar */}
         <DashboardNavbar />
 
-        <div className="flex">
-          {/* Dashboard Sidebar */}
-          <DashboardSidebar />
+        <div className="flex relative">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden fixed top-20 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50"
+          >
+            {isMobileMenuOpen ? (
+              <X size={20} className="text-gray-600" />
+            ) : (
+              <Menu size={20} className="text-gray-600" />
+            )}
+          </button>
+
+          {/* Mobile Overlay */}
+          {isMobileMenuOpen && (
+            <div 
+              className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+          )}
+
+          {/* Sidebar */}
+          <div className={`
+            ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+            lg:translate-x-0 lg:static fixed top-0 left-0 z-40 h-screen
+            transition-transform duration-300 ease-in-out
+          `}>
+            <DashboardSidebar />
+          </div>
 
           {/* Main Content Area */}
         <div className="flex-1">
-          <div className="p-6">
+          <div className="p-4 sm:p-6 pt-20 lg:pt-6">
             {/* Header */}
-            <div className="mb-8 flex items-center justify-between">
+            <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Products Management</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Products Management</h1>
                 <p className="text-gray-600">Manage and organize your product inventory</p>
               </div>
 
               {/* Top right section */}
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
                 {/* Dynamic tenant display */}
                 <div className="flex items-center gap-2 rounded-lg bg-white border border-blue-200 px-4 py-2 shadow-sm">
                   <div className="w-2 h-2 rounded-full bg-blue-500"></div>
@@ -140,7 +168,7 @@ export default function ProductsPage() {
                   onClick={() => {
                     router.push("/Dashboard/Addnewproduct");
                   }}
-                  className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 text-sm font-semibold text-white hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                  className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-3 text-sm font-semibold text-white hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg w-full sm:w-auto"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -168,170 +196,213 @@ export default function ProductsPage() {
               </div>
             ) : (
               <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                {/* Table header */}
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                  <div className="grid grid-cols-12 gap-4 px-6 py-4 text-sm font-semibold text-gray-700">
-                    <div className="col-span-1">ID</div>
-                    <div className="col-span-4">Product Details</div>
-                    <div className="col-span-2">Category</div>
-                    <div className="col-span-1">Price</div>
-                    <div className="col-span-1">Quantity</div>
-                    <div className="col-span-1">Status</div>
-                    <div className="col-span-2">Actions</div>
+                {/* Desktop Table View */}
+                <div className="hidden lg:block">
+                  {/* Table header */}
+                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                    <div className="grid grid-cols-12 gap-4 px-6 py-4 text-sm font-semibold text-gray-700">
+                      <div className="col-span-1">ID</div>
+                      <div className="col-span-4">Product Details</div>
+                      <div className="col-span-2">Category</div>
+                      <div className="col-span-1">Price</div>
+                      <div className="col-span-1">Quantity</div>
+                      <div className="col-span-1">Status</div>
+                      <div className="col-span-2">Actions</div>
+                    </div>
+                  </div>
+
+                  {/* Desktop Table Rows */}
+                  <div className="divide-y divide-gray-100">
+                    {products.map((p, index) => (
+                      <div
+                        key={p.id}
+                        className={`grid grid-cols-12 gap-4 px-6 py-5 text-sm items-center hover:bg-blue-50 transition-colors duration-150 ${
+                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                        }`}
+                      >
+                        {/* ID */}
+                        <div className="col-span-1">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            #{p.id}
+                          </span>
+                        </div>
+
+                        {/* Product Details */}
+                        <div className="col-span-4">
+                          <div className="space-y-1">
+                            <h3 className="font-semibold text-gray-900 leading-tight">{p.name}</h3>
+                            <p className="text-gray-600 text-xs leading-tight line-clamp-2">{p.description}</p>
+                          </div>
+                        </div>
+
+                        {/* Category */}
+                        <div className="col-span-2">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {p.category}
+                          </span>
+                        </div>
+
+                        {/* Price */}
+                        <div className="col-span-1">
+                          <span className="font-semibold text-gray-900">{formatPrice(parseFloat(p.price))}</span>
+                        </div>
+
+                        {/* Quantity */}
+                        <div className="col-span-1">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            p.quantity < 10 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                          }`}>
+                            {p.quantity}
+                          </span>
+                        </div>
+
+                        {/* Status */}
+                        <div className="col-span-1">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            p.status === "available" 
+                              ? "bg-green-100 text-green-800" 
+                              : "bg-red-100 text-red-800"
+                          }`}>
+                            {p.status === "available" ? "Available" : "Unavailable"}
+                          </span>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="col-span-2">
+                          <div className="flex items-center gap-2">
+                            {/* View button */}
+                            <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-200 transition-colors">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            </button>
+
+                            {/* Update button */}
+                            <button
+                              onClick={() => {
+                                router.push(`/Dashboard/UpdateStore/${p.id}`);
+                              }}
+                              className="rounded-md bg-blue-100 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-200 transition-colors"
+                            >
+                              Edit
+                            </button>
+
+                            {/* Delete button */}
+                            <button
+                              onClick={() => {
+                                router.push(`/Dashboard/DeleteProduct/${p.id}`);
+                              }}
+                              className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-200 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Rows */}
-                <div className="divide-y divide-gray-100">
-                  {products.map((p, index) => (
-                    <div
-                      key={p.id}
-                      className={`grid grid-cols-12 gap-4 px-6 py-5 text-sm items-center hover:bg-blue-50 transition-colors duration-150 ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                      }`}
-                    >
-                      {/* ID */}
-                      <div className="col-span-1">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          #{p.id}
-                        </span>
-                      </div>
-
-                      {/* Product Details */}
-                      <div className="col-span-4 flex items-center">
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-gray-900 truncate text-base">
-                            {p.name}
+                {/* Mobile Card View */}
+                <div className="lg:hidden">
+                  <div className="divide-y divide-gray-100">
+                    {products.map((p, index) => (
+                      <div
+                        key={p.id}
+                        className="p-4 hover:bg-blue-50 transition-colors duration-150"
+                      >
+                        <div className="space-y-3">
+                          {/* Header with ID and Status */}
+                          <div className="flex items-center justify-between">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              #{p.id}
+                            </span>
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                              p.status === "available" 
+                                ? "bg-green-100 text-green-800" 
+                                : "bg-red-100 text-red-800"
+                            }`}>
+                              {p.status === "available" ? "Available" : "Unavailable"}
+                            </span>
                           </div>
-                          <div className="text-sm text-gray-500 truncate mt-1">
-                            {p.description}
+
+                          {/* Product Details */}
+                          <div className="space-y-2">
+                            <h3 className="font-semibold text-gray-900 text-lg">{p.name}</h3>
+                            <p className="text-gray-600 text-sm">{p.description}</p>
+                          </div>
+
+                          {/* Category and Quantity */}
+                          <div className="flex items-center justify-between">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {p.category}
+                            </span>
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                              p.quantity < 10 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                            }`}>
+                              Qty: {p.quantity}
+                            </span>
+                          </div>
+
+                          {/* Price */}
+                          <div className="text-lg font-semibold text-gray-900">
+                            {formatPrice(parseFloat(p.price))}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-2 pt-2">
+                            <button className="flex-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-200 transition-colors">
+                              View
+                            </button>
+                            <button
+                              onClick={() => {
+                                router.push(`/Dashboard/UpdateStore/${p.id}`);
+                              }}
+                              className="flex-1 rounded-md bg-blue-100 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-200 transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                router.push(`/Dashboard/DeleteProduct/${p.id}`);
+                              }}
+                              className="flex-1 rounded-md bg-red-100 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-200 transition-colors"
+                            >
+                              Delete
+                            </button>
                           </div>
                         </div>
                       </div>
-
-                      {/* Category */}
-                      <div className="col-span-2">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          {p.category}
-                        </span>
-                      </div>
-
-                      {/* Price */}
-                      <div className="col-span-1">
-                        <div className="font-bold text-gray-900 text-base">{formatPrice(parseFloat(p.price))}</div>
-                      </div>
-
-                      {/* Quantity */}
-                      <div className="col-span-1">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${p.quantity > 10 ? 'bg-green-400' : p.quantity > 0 ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
-                          <span className="font-medium text-gray-800">{p.quantity}</span>
-                        </div>
-                      </div>
-
-                      {/* Status */}
-                      <div className="col-span-1">
-                        <div className="flex items-center justify-center">
-                          <div
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-300 ${
-                              p.status === "available"
-                                ? "bg-green-500"
-                                : "bg-gray-300"
-                            }`}
-                          >
-                            <div
-                              className={`inline-block h-3 w-3 rounded-full bg-white shadow-lg transform transition-transform duration-300 ${
-                                p.status === "available" ? "translate-x-5" : "translate-x-1"
-                              }`}
-                            />
-                          </div>
-                        </div>
-                        <div className="text-center mt-1">
-                          <span
-                            className={`text-xs font-medium ${
-                              p.status === "available"
-                                ? "text-green-600"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {p.status === "available" ? "Active" : "Inactive"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="col-span-2 flex items-center gap-2">
-                        {/* View button */}
-                        <button className="flex items-center justify-center p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                        </button>
-
-                        {/* Update button */}
-                        <button
-                          onClick={() => {
-                            router.push(`/Dashboard/UpdateStore/${p.id}`);
-                          }}
-                          className="rounded-md bg-blue-100 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-200 transition-colors"
-                        >
-                          Edit
-                        </button>
-
-                        {/* Delete button */}
-                        <button
-                          onClick={() => {
-                            router.push(`/Dashboard/DeleteProduct/${p.id}`);
-                          }}
-                          className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-200 transition-colors"
-                        >
-                          Delete
-                        </button>
-
-                        {/* More options */}
-                        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                          <svg
-                            className="w-4 h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
 
                 {/* Footer summary */}
-                <div className="flex items-center justify-between border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
-                  <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-4 sm:px-6 py-4 gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <span className="text-sm font-medium text-gray-700">
                       Total products: <span className="font-bold text-gray-900">{products.length}</span>
                     </span>
-                    <div className="w-px h-4 bg-gray-300"></div>
-                    <span className="text-sm text-gray-600">
-                      Active: {products.filter(p => p.status === "available").length}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      Inactive: {products.filter(p => p.status === "unavailable").length}
-                    </span>
+                    <div className="hidden sm:block w-px h-4 bg-gray-300"></div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-gray-600">
+                        Active: {products.filter(p => p.status === "available").length}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        Inactive: {products.filter(p => p.status === "unavailable").length}
+                      </span>
+                    </div>
                   </div>
                   <div className="text-sm text-gray-500">
                     Last updated: {new Date().toLocaleDateString()}
@@ -345,4 +416,8 @@ export default function ProductsPage() {
       </div>
     </ProtectedRoute>
   );
+}
+
+export default function AllProducts() {
+  return <ProductsPage />;
 }

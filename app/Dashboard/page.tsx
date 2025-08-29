@@ -4,6 +4,7 @@ import DashboardNavbar from "@/app/Components/DashboardNavbar";
 import { useCurrency } from "@/app/utils/currency";
 import { showError } from "@/app/utils/toast";
 import React, { useEffect, useState } from "react";
+import { Menu, X } from "lucide-react";
 
 type Metric = {
   totalProducts: number;
@@ -107,6 +108,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [isClient, setIsClient] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Fix hydration issue
   useEffect(() => {
@@ -233,11 +235,40 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
-      <div className="flex">
-        <DashboardSidebar />
-        <div className="flex-1 p-6">
+      <div className="flex relative">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="lg:hidden fixed top-20 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50"
+        >
+          {isMobileMenuOpen ? (
+            <X size={20} className="text-gray-600" />
+          ) : (
+            <Menu size={20} className="text-gray-600" />
+          )}
+        </button>
+
+        {/* Mobile Overlay */}
+        {isMobileMenuOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <div className={`
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 lg:static fixed top-0 left-0 z-40 h-screen
+          transition-transform duration-300 ease-in-out
+        `}>
+          <DashboardSidebar />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 lg:ml-0 ml-0 p-4 sm:p-6 pt-20 lg:pt-6">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
                 {tenant && (
@@ -246,35 +277,37 @@ export default function Dashboard() {
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
                 <div className="text-sm text-gray-500">
                   {isClient ? `Last updated: ${lastRefresh.toLocaleTimeString('en-US', { timeZone: 'Asia/Karachi' })} PKT` : 'Last updated: Loading...'}
                 </div>
-                <button
-                  onClick={refreshData}
-                  disabled={loading}
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Refreshing...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                      </svg>
-                      Refresh
-                    </>
-                  )}
-                </button>
-                <span className="rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-                  Tenant: {tenant || "No Tenant"}
-                </span>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={refreshData}
+                    disabled={loading}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Refreshing...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Refresh
+                      </>
+                    )}
+                  </button>
+                  <span className="rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                    Tenant: {tenant || "No Tenant"}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -285,7 +318,7 @@ export default function Dashboard() {
             ) : (
               <>
                 {/* Metrics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                   <div className="bg-white p-6 rounded-lg shadow">
                     <h3 className="text-sm font-medium text-gray-500 mb-1">Total Products</h3>
                     <p className="text-2xl font-bold text-gray-900">{metrics.totalProducts}</p>
@@ -381,29 +414,29 @@ export default function Dashboard() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {history.map((item) => (
                           <tr key={item.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{item.id}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.product.name}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{item.id}</td>
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.product.name}</td>
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               <span className={`px-2 py-1 rounded-full text-xs ${
                                 item.movement_type === "stock_in" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                               }`}>
                                 {item.movement_type.toUpperCase()}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.quantity_changed}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(item.movement_date).toLocaleDateString()}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.notes}</td>
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.quantity_changed}</td>
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(item.movement_date).toLocaleDateString()}</td>
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.notes}</td>
                           </tr>
                         ))}
                       </tbody>

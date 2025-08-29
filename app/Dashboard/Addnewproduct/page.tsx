@@ -3,6 +3,7 @@ import DashboardNavbar from "@/app/Components/DashboardNavbar";
 import DashboardSidebar from "@/app/Components/DashboardSidebar";
 import React, { useState } from "react";
 import toast from 'react-hot-toast';
+import { Menu, X } from "lucide-react";
 
 export default function AddNewProduct() {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ export default function AddNewProduct() {
     quantity: "",
     status: "available",
   });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Token read karna cookies se
   const getTokenFromCookies = () => {
@@ -113,19 +115,45 @@ export default function AddNewProduct() {
       {/* Dashboard Navbar */}
       <DashboardNavbar />
       
-      <div className="flex">
-        {/* Dashboard Sidebar */}
-        <DashboardSidebar />
+      <div className="flex relative">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="lg:hidden fixed top-20 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50"
+        >
+          {isMobileMenuOpen ? (
+            <X size={20} className="text-gray-600" />
+          ) : (
+            <Menu size={20} className="text-gray-600" />
+          )}
+        </button>
+
+        {/* Mobile Overlay */}
+        {isMobileMenuOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <div className={`
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 lg:static fixed top-0 left-0 z-40 h-screen
+          transition-transform duration-300 ease-in-out
+        `}>
+          <DashboardSidebar />
+        </div>
         
         {/* Main Content Area */}
         <div className="flex-1">
-          <div className="p-4">
+          <div className="p-4 sm:p-6 pt-20 lg:pt-4">
             {/* Breadcrumb */}
-            <nav className="flex mb-4" aria-label="Breadcrumb">
-              <ol className="inline-flex items-center space-x-1 md:space-x-3">
+            <nav className="flex mb-4 overflow-x-auto" aria-label="Breadcrumb">
+              <ol className="inline-flex items-center space-x-1 md:space-x-3 whitespace-nowrap">
                 <li className="inline-flex items-center">
-                  <a href="#" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
-                    <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <a href="#" className="inline-flex items-center text-xs sm:text-sm font-medium text-gray-700 hover:text-blue-600">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
                     </svg>
                     Dashboard
@@ -133,18 +161,18 @@ export default function AddNewProduct() {
                 </li>
                 <li>
                   <div className="flex items-center">
-                    <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path>
                     </svg>
-                    <a href="#" className="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">Products</a>
+                    <a href="#" className="ml-1 text-xs sm:text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">Products</a>
                   </div>
                 </li>
                 <li aria-current="page">
                   <div className="flex items-center">
-                    <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path>
                     </svg>
-                    <span className="ml-1 text-sm font-medium text-gray-500 md:ml-2">Add Product</span>
+                    <span className="ml-1 text-xs sm:text-sm font-medium text-gray-500 md:ml-2">Add Product</span>
                   </div>
                 </li>
               </ol>
@@ -152,15 +180,15 @@ export default function AddNewProduct() {
 
             {/* Page Header */}
             <div className="mb-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-lg shadow-sm">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-3">
+                <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg shadow-sm">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
-                  <p className="text-gray-600 text-sm">Create a new product for your inventory</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Add New Product</h1>
+                  <p className="text-gray-600 text-xs sm:text-sm">Create a new product for your inventory</p>
                 </div>
               </div>
             </div>
@@ -171,11 +199,11 @@ export default function AddNewProduct() {
 
               {/* Form Card */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <form onSubmit={handleSubmit} className="p-6">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-6">
                   {/* Product Information Section */}
                   <div className="mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       Product Information
@@ -184,8 +212,8 @@ export default function AddNewProduct() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Product Name */}
                       <div className="lg:col-span-2">
-                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                           </svg>
                           Product Name
@@ -196,15 +224,15 @@ export default function AddNewProduct() {
                           placeholder="Enter product name"
                           value={formData.name}
                           onChange={handleChange}
-                          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                          className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 text-sm"
                           required
                         />
                       </div>
 
                       {/* Category */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                           </svg>
                           Category
@@ -215,15 +243,15 @@ export default function AddNewProduct() {
                           placeholder="e.g., Electronics, Clothing"
                           value={formData.category}
                           onChange={handleChange}
-                          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                          className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 text-sm"
                           required
                         />
                       </div>
 
                       {/* Status */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           Status
@@ -232,7 +260,7 @@ export default function AddNewProduct() {
                           name="status"
                           value={formData.status}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 appearance-none bg-white"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 appearance-none bg-white text-sm"
                         >
                           <option value="available">Available</option>
                           <option value="out-of-stock">Out of Stock</option>
@@ -241,8 +269,8 @@ export default function AddNewProduct() {
 
                       {/* Description */}
                       <div className="lg:col-span-2">
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-700 mb-3">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
                           Description
@@ -253,7 +281,7 @@ export default function AddNewProduct() {
                           value={formData.description}
                           onChange={handleChange}
                           rows={4}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 resize-none"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 resize-none text-sm"
                           required
                         />
                       </div>
@@ -262,25 +290,25 @@ export default function AddNewProduct() {
 
                   {/* Pricing & Inventory Section */}
                   <div className="mb-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <h2 className="text-base sm:text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                       </svg>
                       Pricing & Inventory
                     </h2>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       {/* Price */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-700 mb-3">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                           </svg>
                           Price ($)
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                            <span className="text-gray-500 font-medium">$</span>
+                            <span className="text-gray-500 font-medium text-sm">$</span>
                           </div>
                           <input
                             type="number"
@@ -290,7 +318,7 @@ export default function AddNewProduct() {
                             onChange={handleChange}
                             step="0.01"
                             min="0"
-                            className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                            className="w-full pl-8 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 text-sm"
                             required
                           />
                         </div>
@@ -298,8 +326,8 @@ export default function AddNewProduct() {
 
                       {/* Quantity */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-700 mb-3">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                           </svg>
                           Quantity
@@ -311,7 +339,7 @@ export default function AddNewProduct() {
                           value={formData.quantity}
                           onChange={handleChange}
                           min="0"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 text-sm"
                           required
                         />
                       </div>

@@ -18,7 +18,9 @@ import {
   Eye,
   ShoppingCart,
   Boxes,
-  Clock
+  Clock,
+  Menu,
+  X
 } from "lucide-react";
 
 // Types for our reports data
@@ -120,6 +122,7 @@ export default function ReportsPage() {
   const [tenant, setTenant] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Report data states
   const [productAnalytics, setProductAnalytics] = useState<ProductAnalytics[]>([]);
@@ -294,36 +297,68 @@ export default function ReportsPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
       <div className="flex">
-        <DashboardSidebar />
-        <div className="flex-1 p-6">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <DashboardSidebar />
+        </div>
+
+        {/* Mobile Menu Button */}
+        <div className="md:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-lg bg-white shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6 text-gray-600" />
+            ) : (
+              <Menu className="w-6 h-6 text-gray-600" />
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-40">
+            <div 
+              className="absolute inset-0 bg-black bg-opacity-50"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <div className="relative w-64 h-full">
+              <DashboardSidebar />
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 p-3 md:p-6 pt-16 md:pt-6">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">Reports & Analytics</h1>
                 {tenant && (
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Store: <span className="font-medium text-blue-600">{tenant}</span>
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-gray-500">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <div className="text-xs md:text-sm text-gray-500">
                   Last updated: {lastRefresh.toLocaleTimeString('en-US', { timeZone: 'Asia/Karachi' })} PKT
                 </div>
                 <button
                   onClick={refreshData}
                   disabled={loading}
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-xs md:text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                   {loading ? (
                     <>
-                      <RefreshCw className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                      <RefreshCw className="animate-spin -ml-1 mr-2 h-3 w-3 md:h-4 md:w-4" />
                       Loading...
                     </>
                   ) : (
                     <>
-                      <RefreshCw className="-ml-1 mr-2 h-4 w-4" />
+                      <RefreshCw className="-ml-1 mr-2 h-3 w-3 md:h-4 md:w-4" />
                       Refresh
                     </>
                   )}
@@ -336,61 +371,61 @@ export default function ReportsPage() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {/* Inventory Health Overview */}
                 {inventoryHealth && (
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <Package className="w-5 h-5 mr-2 text-blue-600" />
+                  <div className="bg-white rounded-lg shadow p-4 md:p-6">
+                    <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Package className="w-4 h-4 md:w-5 md:h-5 mr-2 text-blue-600" />
                       Inventory Health Overview
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                      <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
+                      <div className="bg-blue-50 p-3 md:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <Boxes className="w-5 h-5 text-blue-600 mr-2" />
-                          <span className="text-sm text-blue-600 font-medium">Total Products</span>
+                          <Boxes className="w-4 h-4 md:w-5 md:h-5 text-blue-600 mr-2" />
+                          <span className="text-xs md:text-sm text-blue-600 font-medium">Total Products</span>
                         </div>
-                        <p className="text-2xl font-bold text-blue-900 mt-1">{inventoryHealth.totalProducts}</p>
+                        <p className="text-lg md:text-2xl font-bold text-blue-900 mt-1">{inventoryHealth.totalProducts}</p>
                       </div>
                       
-                      <div className="bg-yellow-50 p-4 rounded-lg">
+                      <div className="bg-yellow-50 p-3 md:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
-                          <span className="text-sm text-yellow-600 font-medium">Low Stock</span>
+                          <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-yellow-600 mr-2" />
+                          <span className="text-xs md:text-sm text-yellow-600 font-medium">Low Stock</span>
                         </div>
-                        <p className="text-2xl font-bold text-yellow-900 mt-1">{inventoryHealth.lowStockItems}</p>
+                        <p className="text-lg md:text-2xl font-bold text-yellow-900 mt-1">{inventoryHealth.lowStockItems}</p>
                       </div>
                       
-                      <div className="bg-red-50 p-4 rounded-lg">
+                      <div className="bg-red-50 p-3 md:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <TrendingDown className="w-5 h-5 text-red-600 mr-2" />
-                          <span className="text-sm text-red-600 font-medium">Out of Stock</span>
+                          <TrendingDown className="w-4 h-4 md:w-5 md:h-5 text-red-600 mr-2" />
+                          <span className="text-xs md:text-sm text-red-600 font-medium">Out of Stock</span>
                         </div>
-                        <p className="text-2xl font-bold text-red-900 mt-1">{inventoryHealth.outOfStockItems}</p>
+                        <p className="text-lg md:text-2xl font-bold text-red-900 mt-1">{inventoryHealth.outOfStockItems}</p>
                       </div>
                       
-                      <div className="bg-orange-50 p-4 rounded-lg">
+                      <div className="bg-orange-50 p-3 md:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <TrendingUp className="w-5 h-5 text-orange-600 mr-2" />
-                          <span className="text-sm text-orange-600 font-medium">Overstocked</span>
+                          <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-orange-600 mr-2" />
+                          <span className="text-xs md:text-sm text-orange-600 font-medium">Overstocked</span>
                         </div>
-                        <p className="text-2xl font-bold text-orange-900 mt-1">{inventoryHealth.overstockedItems}</p>
+                        <p className="text-lg md:text-2xl font-bold text-orange-900 mt-1">{inventoryHealth.overstockedItems}</p>
                       </div>
                       
-                      <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="bg-green-50 p-3 md:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <DollarSign className="w-5 h-5 text-green-600 mr-2" />
-                          <span className="text-sm text-green-600 font-medium">Total Value</span>
+                          <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-green-600 mr-2" />
+                          <span className="text-xs md:text-sm text-green-600 font-medium">Total Value</span>
                         </div>
-                        <p className="text-2xl font-bold text-green-900 mt-1">{formatPrice(inventoryHealth.totalValue)}</p>
+                        <p className="text-lg md:text-2xl font-bold text-green-900 mt-1">{formatPrice(inventoryHealth.totalValue)}</p>
                       </div>
                       
-                      <div className="bg-purple-50 p-4 rounded-lg">
+                      <div className="bg-purple-50 p-3 md:p-4 rounded-lg">
                         <div className="flex items-center">
-                          <Clock className="w-5 h-5 text-purple-600 mr-2" />
-                          <span className="text-sm text-purple-600 font-medium">Avg Days</span>
+                          <Clock className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2" />
+                          <span className="text-xs md:text-sm text-purple-600 font-medium">Avg Days</span>
                         </div>
-                        <p className="text-2xl font-bold text-purple-900 mt-1">{Math.round(inventoryHealth.avgStockDays)}</p>
+                        <p className="text-lg md:text-2xl font-bold text-purple-900 mt-1">{Math.round(inventoryHealth.avgStockDays)}</p>
                       </div>
                     </div>
                   </div>
@@ -398,13 +433,15 @@ export default function ReportsPage() {
 
                 {/* Product Performance Analysis */}
                 <div className="bg-white rounded-lg shadow overflow-hidden">
-                  <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                      <BarChart3 className="w-5 h-5 mr-2 text-green-600" />
+                  <div className="p-4 md:p-6 border-b border-gray-200">
+                    <h2 className="text-base md:text-lg font-semibold text-gray-900 flex items-center">
+                      <BarChart3 className="w-4 h-4 md:w-5 md:h-5 mr-2 text-green-600" />
                       Top Product Performance
                     </h2>
                   </div>
-                  <div className="overflow-x-auto">
+                  
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
@@ -443,32 +480,75 @@ export default function ReportsPage() {
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden space-y-4 p-4">
+                    {productAnalytics
+                      .sort((a, b) => b.revenue - a.revenue)
+                      .slice(0, 10)
+                      .map((product) => (
+                        <div key={product.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 text-base mb-1">{product.name}</h3>
+                              <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                {product.category}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">Units Sold</span>
+                              <div className="font-bold text-gray-900">{product.totalSold}</div>
+                            </div>
+                            <div>
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">Revenue</span>
+                              <div className="font-bold text-gray-900">{formatPrice(product.revenue)}</div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">Profit Margin</span>
+                              <div className={`font-bold ${product.profitMargin > 20 ? 'text-green-600' : product.profitMargin > 10 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                {product.profitMargin.toFixed(1)}%
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">Turnover Rate</span>
+                              <div className="font-bold text-gray-900">{product.turnoverRate.toFixed(2)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 </div>
 
                 {/* Category Performance */}
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <PieChart className="w-5 h-5 mr-2 text-purple-600" />
+                <div className="bg-white rounded-lg shadow p-4 md:p-6">
+                  <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <PieChart className="w-4 h-4 md:w-5 md:h-5 mr-2 text-purple-600" />
                     Category Performance Analysis
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                     {categoryPerformance.map((category) => (
-                      <div key={category.category} className="border border-gray-200 rounded-lg p-4">
-                        <h3 className="font-medium text-gray-900 mb-2">{category.category}</h3>
+                      <div key={category.category} className="border border-gray-200 rounded-lg p-3 md:p-4">
+                        <h3 className="font-medium text-gray-900 mb-2 text-sm md:text-base">{category.category}</h3>
                         <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
+                          <div className="flex justify-between text-xs md:text-sm">
                             <span className="text-gray-600">Products:</span>
                             <span className="font-medium">{category.totalProducts}</span>
                           </div>
-                          <div className="flex justify-between text-sm">
+                          <div className="flex justify-between text-xs md:text-sm">
                             <span className="text-gray-600">Total Value:</span>
                             <span className="font-medium">{formatPrice(category.totalValue)}</span>
                           </div>
-                          <div className="flex justify-between text-sm">
+                          <div className="flex justify-between text-xs md:text-sm">
                             <span className="text-gray-600">Avg Price:</span>
                             <span className="font-medium">{formatPrice(category.avgPrice)}</span>
                           </div>
-                          <div className="flex justify-between text-sm">
+                          <div className="flex justify-between text-xs md:text-sm">
                             <span className="text-gray-600">Total Quantity:</span>
                             <span className="font-medium">{category.totalQuantity}</span>
                           </div>
@@ -479,9 +559,9 @@ export default function ReportsPage() {
                 </div>
 
                 {/* Revenue Trends */}
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <TrendingUp className="w-5 h-5 mr-2 text-indigo-600" />
+                <div className="bg-white rounded-lg shadow p-4 md:p-6">
+                  <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <TrendingUp className="w-4 h-4 md:w-5 md:h-5 mr-2 text-indigo-600" />
                     Revenue Trends (Last 6 Months)
                   </h2>
                   <div className="overflow-x-auto">

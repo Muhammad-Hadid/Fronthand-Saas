@@ -6,6 +6,7 @@ import { showError, showSuccess } from "@/app/utils/toast";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import jsPDF from 'jspdf';
+import { Menu, X } from "lucide-react";
 
 export default function AddStockOut() {
   const { formatPrice, getCurrencySymbol } = useCurrency();
@@ -16,6 +17,7 @@ export default function AddStockOut() {
     customer_name: "",
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
 
   // ✅ Token cookies se nikalna
@@ -194,12 +196,44 @@ export default function AddStockOut() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
       <div className="flex">
-        <DashboardSidebar />
-        <div className="flex-1 p-4">
-          <div className="max-w-xl mx-auto bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-6 border-b border-yellow-200 pb-4">
-              <h1 className="text-xl font-bold text-yellow-800">Add Stock Out</h1>
-              <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <DashboardSidebar />
+        </div>
+
+        {/* Mobile Menu Button */}
+        <div className="md:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-lg bg-white shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6 text-gray-600" />
+            ) : (
+              <Menu className="w-6 h-6 text-gray-600" />
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-40">
+            <div 
+              className="absolute inset-0 bg-black bg-opacity-50"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <div className="relative w-64 h-full">
+              <DashboardSidebar />
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 p-3 md:p-4 pt-16 md:pt-4">
+          <div className="max-w-xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 border-b border-yellow-200 pb-4 gap-3">
+              <h1 className="text-lg md:text-xl font-bold text-yellow-800">Add Stock Out</h1>
+              <span className="text-xs md:text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full w-fit">
                 Tenant: {getTenantFromClient() || "Not Set"}
               </span>
             </div>
@@ -210,9 +244,9 @@ export default function AddStockOut() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Product ID
                 </label>
                 <input
@@ -220,12 +254,12 @@ export default function AddStockOut() {
                   name="product_id"
                   value={formData.product_id}
                   readOnly
-                  className="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                  className="w-full p-2 md:p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Quantity Sold
                 </label>
                 <input
@@ -233,14 +267,14 @@ export default function AddStockOut() {
                   name="quantity_sold"
                   value={formData.quantity_sold}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                  className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 text-sm"
                   placeholder="Enter quantity sold"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Unit Price ({getCurrencySymbol()})
                 </label>
                 <input
@@ -248,14 +282,14 @@ export default function AddStockOut() {
                   name="unit_price"
                   value={formData.unit_price}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                  className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 text-sm"
                   placeholder={`Enter unit price in ${getCurrencySymbol()}`}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Customer Name
                 </label>
                 <input
@@ -263,7 +297,7 @@ export default function AddStockOut() {
                   name="customer_name"
                   value={formData.customer_name}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                  className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 text-sm"
                   placeholder="Enter customer name"
                   required
                 />
@@ -271,10 +305,10 @@ export default function AddStockOut() {
 
               {/* Total Amount Display */}
               {formData.quantity_sold > 0 && formData.unit_price > 0 && (
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="bg-gray-50 p-3 md:p-4 rounded-lg border border-gray-200">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700">Total Amount:</span>
-                    <span className="text-lg font-bold text-green-600">
+                    <span className="text-xs md:text-sm font-medium text-gray-700">Total Amount:</span>
+                    <span className="text-base md:text-lg font-bold text-green-600">
                       {formatPrice(formData.quantity_sold * formData.unit_price)}
                     </span>
                   </div>
@@ -283,17 +317,17 @@ export default function AddStockOut() {
 
               <div className="flex flex-col space-y-3">
                 {/* Main Action Buttons */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200"
+                    className="px-3 md:px-4 py-2 md:py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 text-sm font-medium"
                   >
                     Reset Form
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors duration-200 disabled:bg-yellow-400"
+                    className="px-3 md:px-4 py-2 md:py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors duration-200 disabled:bg-yellow-400 text-sm font-medium"
                     disabled={loading}
                   >
                     {loading ? "Processing..." : "Stock Out"}
@@ -301,18 +335,18 @@ export default function AddStockOut() {
                 </div>
 
                 {/* Additional Action Buttons */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={handleAddMore}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                    className="px-3 md:px-4 py-2 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                   >
                     Add More Products
                   </button>
                   <button
                     type="button"
                     onClick={generatePDF}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                    className="px-3 md:px-4 py-2 md:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium"
                   >
                     Generate Receipt
                   </button>

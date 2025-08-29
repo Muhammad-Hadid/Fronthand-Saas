@@ -10,7 +10,9 @@ import {
   Save,
   Eye,
   Check,
-  AlertCircle
+  AlertCircle,
+  Menu,
+  X
 } from "lucide-react";
 
 // Types
@@ -51,6 +53,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'store' | 'display'>('profile');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currency, setCurrency } = useCurrency();
   
   // User Profile Data
@@ -191,15 +194,47 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <DashboardNavbar />
       <div className="flex">
-        <DashboardSidebar />
-        <div className="flex-1 p-6">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <DashboardSidebar />
+        </div>
+
+        {/* Mobile Menu Button */}
+        <div className="md:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+            ) : (
+              <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-40">
+            <div 
+              className="absolute inset-0 bg-black bg-opacity-50"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <div className="relative w-64 h-full">
+              <DashboardSidebar />
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 p-3 md:p-6 pt-16 md:pt-6">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
                 {tenant && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1">
                     Store: <span className="font-medium text-blue-600 dark:text-blue-400">{tenant}</span>
                   </p>
                 )}
@@ -208,12 +243,12 @@ export default function SettingsPage() {
 
             {/* Success/Error Messages */}
             {message && (
-              <div className={`mb-6 p-4 rounded-lg flex items-center gap-2 ${
+              <div className={`mb-6 p-3 md:p-4 rounded-lg flex items-center gap-2 text-sm ${
                 message.type === 'success' 
                   ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800' 
                   : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
               }`}>
-                {message.type === 'success' ? <Check className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                {message.type === 'success' ? <Check className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />}
                 {message.text}
               </div>
             )}
@@ -221,7 +256,7 @@ export default function SettingsPage() {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/10">
               {/* Tab Navigation */}
               <div className="border-b border-gray-200 dark:border-gray-700">
-                <nav className="flex space-x-8 px-6">
+                <nav className="flex space-x-4 md:space-x-8 px-4 md:px-6 overflow-x-auto">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -229,13 +264,13 @@ export default function SettingsPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                        className={`flex items-center gap-2 py-3 md:py-4 px-2 border-b-2 font-medium text-xs md:text-sm transition-colors whitespace-nowrap ${
                           isActive
                             ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                             : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
                         }`}
                       >
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-3 h-3 md:w-4 md:h-4" />
                         {tab.label}
                       </button>
                     );
@@ -244,43 +279,43 @@ export default function SettingsPage() {
               </div>
 
               {/* Tab Content */}
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 {/* User Profile Tab */}
                 {activeTab === 'profile' && (
                   <div className="max-w-2xl">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">User Profile</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">View your personal information. Contact admin to make changes.</p>
+                    <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">User Profile</h2>
+                    <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-6">View your personal information. Contact admin to make changes.</p>
                     
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
+                          <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
                           <input
                             type="text"
                             value={userData.first_name}
                             readOnly
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed text-sm"
                           />
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
+                          <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
                           <input
                             type="text"
                             value={userData.last_name}
                             readOnly
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed text-sm"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
                         <input
                           type="email"
                           value={userData.email}
                           readOnly
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed text-sm"
                         />
                       </div>
 
@@ -297,8 +332,8 @@ export default function SettingsPage() {
                       )}
 
                       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          <Eye className="w-4 h-4 inline mr-1" />
+                        <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+                          <Eye className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
                           This information is read-only. Contact your administrator to make changes.
                         </p>
                       </div>
@@ -309,37 +344,37 @@ export default function SettingsPage() {
                 {/* Store Information Tab */}
                 {activeTab === 'store' && (
                   <div className="max-w-2xl">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Store Information</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">View your store details. Contact admin to make changes.</p>
+                    <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Store Information</h2>
+                    <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-6">View your store details. Contact admin to make changes.</p>
                     
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Store Name</label>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Store Name</label>
                         <input
                           type="text"
                           value={storeData.store_name}
                           readOnly
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed text-sm"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Store Address</label>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Store Address</label>
                         <textarea
                           value={storeData.address || 'Not specified'}
                           readOnly
                           rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed text-sm"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
                         <input
                           type="text"
                           value={storeData.phone || 'Not specified'}
                           readOnly
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed text-sm"
                         />
                       </div>
 
@@ -368,14 +403,14 @@ export default function SettingsPage() {
                 {/* Display Preferences Tab */}
                 {activeTab === 'display' && (
                   <div className="max-w-2xl">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Display Preferences</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Customize how the dashboard looks and feels.</p>
+                    <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Display Preferences</h2>
+                    <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-6">Customize how the dashboard looks and feels.</p>
                     
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                       {/* Theme Selection */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Theme</label>
-                        <div className="flex gap-4">
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Theme</label>
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                           <label className="flex items-center">
                             <input
                               type="radio"
@@ -385,7 +420,7 @@ export default function SettingsPage() {
                               onChange={(e) => setDisplaySettings(prev => ({ ...prev, theme: e.target.value as 'light' | 'dark' }))}
                               className="mr-2 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
                             />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Light Mode</span>
+                            <span className="text-xs md:text-sm text-gray-700 dark:text-gray-300">Light Mode</span>
                           </label>
                           <label className="flex items-center">
                             <input
@@ -396,18 +431,18 @@ export default function SettingsPage() {
                               onChange={(e) => setDisplaySettings(prev => ({ ...prev, theme: e.target.value as 'light' | 'dark' }))}
                               className="mr-2 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
                             />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Dark Mode</span>
+                            <span className="text-xs md:text-sm text-gray-700 dark:text-gray-300">Dark Mode</span>
                           </label>
                         </div>
                       </div>
 
                       {/* Language Selection */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Language</label>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Language</label>
                         <select
                           value={displaySettings.language}
                           onChange={(e) => setDisplaySettings(prev => ({ ...prev, language: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm"
                         >
                           {languages.map((lang) => (
                             <option key={lang.code} value={lang.code}>
